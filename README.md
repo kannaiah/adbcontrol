@@ -15,7 +15,7 @@ ip address of the device can be provided using the settings menu and press conne
 ```
 python splitview.py
 ```
-Or before launching the application connected to device and make sure there is only one device connected to adb.
+Or before launching the application, connect to device through adb and make sure there is only one device connected to adb.
 
 ```
 adb connect <ip address>
