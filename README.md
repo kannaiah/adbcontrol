@@ -20,6 +20,8 @@ Or before launching the application, connect to device through adb and make sure
 ```
 adb connect <ip address>
 ```
+# Demonstration
+[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/JavS94AiGVM/0.jpg)](http://www.youtube.com/watch?v=JavS94AiGVM)
 
 # Issues
 - Only single device is supported.
