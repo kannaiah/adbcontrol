@@ -69,6 +69,12 @@ class ADB():
         else:
             None
 
+    def run(self, cmd, logfile):
+        with open(logfile, "w") as f:
+            p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stdout=f)
+            p.wait()
+            return p
+
     def connect(self, ipaddr, port=''):
         lport = ':' + port if port != '' else ''
         self.call("connect " + ipaddr + lport)
@@ -100,9 +106,15 @@ class ADB():
         return result
 
     def screenshot(self, output, name=''):
-        self.call("shell screencap -p /sdcard/temp_screen.png", name)
-        self.get("/sdcard/temp_screen.png", output, name)
-        self.call("shell rm /sdcard/temp_screen.png", name)
+        cmd = "adb shell  screencap -p"
+        logfile = 'screen.raw'
+        self.run(cmd, logfile)
+        with open(logfile, "rb") as f:
+            s = f.read()
+            s = s.replace('\r\n', '\n')
+            s = s.replace('\r\n', '\n')
+            with open(output, "wb") as wf:
+                wf.write(s)
 
     def touchAt(self, x, y, name=''):
         # Send touch event on screen
