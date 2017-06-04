@@ -2,7 +2,8 @@ from PyQt4 import QtCore, QtGui
 from icons import *
 import base64
 import logging
-import sys, os
+import sys
+import os
 import subprocess
 import tempfile
 import time
@@ -13,7 +14,7 @@ formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
-#logger.setLevel(logging.INFO)
+# logger.setLevel(logging.INFO)
 
 
 def execute_command(command, lcwd=None):
@@ -32,10 +33,10 @@ def execute_command(command, lcwd=None):
         logger.error("Error > %s", sys.exc_info()[0])
 
         if res.returncode != 0:
-            logger.error( 'adb cannot be found specify correct path' )
+            logger.error('adb cannot be found specify correct path')
 
         else:
-            logger.info( 'adb found!')
+            logger.info('adb found!')
 
     retcode = res.returncode
     with open(w.name, 'r') as r:
@@ -45,10 +46,13 @@ def execute_command(command, lcwd=None):
 
 # execute_command(['dir'])
 ##########################################################################
+
+
 class ADB():
     adb_path = None
+
     def __init__(self, padb=None):
-        #' Check if adb is present'
+        # Check if adb is present
         if padb:
             # pathh provided
             ADB.adb_path = padb
@@ -66,22 +70,23 @@ class ADB():
             None
 
     def connect(self, ipaddr, port=''):
-        lport = ':'+ port if port != '' else ''
+        lport = ':' + port if port != '' else ''
         self.call("connect " + ipaddr + lport)
         self.devs = self.devices()
 
-    def call(self, command, name = ''):
+    def call(self, command, name=''):
         command_result = ''
         dev_str = ''
         if name != '':
             dev_str = ' -s ' + name
 
         command_text = ADB.adb_path + dev_str + ' %s' % command
-        logger.info( 'Command: %s', command_text )
+        logger.info('Command: %s', command_text)
         results = os.popen(command_text, "r")
         while 1:
             line = results.readline()
-            if not line: break
+            if not line:
+                break
             command_result += line
         return command_result
 
@@ -90,20 +95,22 @@ class ADB():
         devices = result.partition('\n')[2].replace('\n', '').split('\tdevice')
         return [device for device in devices if len(device) > 2]
 
-    def get(self, fr, to, name = ''):
+    def get(self, fr, to, name=''):
         result = self.call("pull " + fr + " " + to, name)
         return result
 
-    def screenshot(self, output, name = ''):
+    def screenshot(self, output, name=''):
         self.call("shell screencap -p /sdcard/temp_screen.png", name)
         self.get("/sdcard/temp_screen.png", output, name)
         self.call("shell rm /sdcard/temp_screen.png", name)
 
     def touchAt(self, x, y, name=''):
         # Send touch event on screen
-        self.call("shell input touchscreen tap %d %d" % (x,y))
+        self.call("shell input touchscreen tap %d %d" % (x, y))
 
 ##########################################################################
+
+
 class Device(ADB):
     def __init__(self, name):
         self.dev_name = name
@@ -111,14 +118,15 @@ class Device(ADB):
     def screenshot(self, output):
         ADB.screenshot(self, output, self.dev_name)
 
+
 ##########################################################################
-mapActionCommand = {"UP":"input keyevent 19", "DOWN":"input keyevent 20", "LEFT":"input keyevent 21",
-                    "RIGHT":"input keyevent 22", "ENTER":"input keyevent 66", "BACK":"input keyevent 4",
-                    "HOME":"input keyevent 3", "MENU":"input keyevent 1",
-                    "POTRAIT":"content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:1",
-                    "LANDSCAPE":"content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:0",
-                    "AUTOROTATEOFF":"content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:0",
-                    "AUTOROTATEON":"content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:0"}
+mapActionCommand = {"UP": "input keyevent 19", "DOWN": "input keyevent 20", "LEFT": "input keyevent 21",
+                    "RIGHT": "input keyevent 22", "ENTER": "input keyevent 66", "BACK": "input keyevent 4",
+                    "HOME": "input keyevent 3", "MENU": "input keyevent 1",
+                    "POTRAIT": "content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:1",
+                    "LANDSCAPE": "content insert --uri content://settings/system --bind name:s:user_rotation --bind value:i:0",
+                    "AUTOROTATEOFF": "content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:0",
+                    "AUTOROTATEON": "content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:0"}
 ##########################################################################
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -127,11 +135,13 @@ except AttributeError:
         return s
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
+
 
 class MainWindow(QtGui.QMainWindow):
 
@@ -169,7 +179,7 @@ class MainWindow(QtGui.QMainWindow):
         btn.setObjectName(_fromUtf8(buttonName))
         return btn
 
-    def resizeEvent(self,resizeEvent):
+    def resizeEvent(self, resizeEvent):
         self.updateDisplay()
 
     def setUI(self, MainWindow):
@@ -191,33 +201,33 @@ class MainWindow(QtGui.QMainWindow):
         vLayout.addLayout(hLayout)
         vLayout.addStretch(1)
 
-        self.pushButtonLeft  = self.addButtonWithIcon("pushButtonLeft", left_b64)
+        self.pushButtonLeft = self.addButtonWithIcon("pushButtonLeft", left_b64)
         self.pushButtonRight = self.addButtonWithIcon("pushButtonRight", right_b64)
-        self.pushButtonConnect =  self.addButtonWithIcon("pushButtonConnect",disconnected_b64)
+        self.pushButtonConnect = self.addButtonWithIcon("pushButtonConnect", disconnected_b64)
         self.pushButtonUpdate = self.addButtonWithIcon("pushButtonUpdate", sync_b64)
         self.pushButtonMenu = self.addButtonWithIcon("pushButtonMenu", menu_b64)
-        self.pushButtonBack = self.addButtonWithIcon("pushButtonBack",return_b64)
+        self.pushButtonBack = self.addButtonWithIcon("pushButtonBack", return_b64)
         self.pushButtonHome = self.addButtonWithIcon("pushButtonHome", home_b64)
-        self.pushButtonPotrait = self.addButtonWithIcon( "pushButtonPotrait",potrait_b64)
+        self.pushButtonPotrait = self.addButtonWithIcon("pushButtonPotrait", potrait_b64)
         self.pushButtonLandscape = self.addButtonWithIcon("pushButtonLandscape", landscape_b64)
         self.pushButtonAutorotate = self.addButtonWithIcon("pushButtonAutorotate", autorotate_b64)
         self.pushButtonUp = self.addButtonWithIcon("pushButtonUp", up_b64)
         self.pushButtonDown = self.addButtonWithIcon("pushButtonDown", down_b64)
         self.pushButtonNoAutorotate = self.addButtonWithIcon("pushButtonNoAutorotate", no_auto_b64)
 
-        btn_layout.addWidget(self.pushButtonUpdate, 0,0)
-        btn_layout.addWidget(self.pushButtonRight, 5,2)
-        btn_layout.addWidget(self.pushButtonConnect, 0,2)
-        btn_layout.addWidget(self.pushButtonLeft, 5,0)
-        btn_layout.addWidget(self.pushButtonMenu, 3,0)
-        btn_layout.addWidget(self.pushButtonHome, 3,1)
-        btn_layout.addWidget(self.pushButtonBack, 3,2)
-        btn_layout.addWidget(self.pushButtonUp, 4,1)
-        btn_layout.addWidget(self.pushButtonDown, 6,1)
-        btn_layout.addWidget(self.pushButtonPotrait, 1,0)
-        btn_layout.addWidget(self.pushButtonAutorotate, 1,1)
-        btn_layout.addWidget(self.pushButtonLandscape, 1,2)
-        btn_layout.addWidget(self.pushButtonNoAutorotate, 2,1)
+        btn_layout.addWidget(self.pushButtonUpdate, 0, 0)
+        btn_layout.addWidget(self.pushButtonRight, 5, 2)
+        btn_layout.addWidget(self.pushButtonConnect, 0, 2)
+        btn_layout.addWidget(self.pushButtonLeft, 5, 0)
+        btn_layout.addWidget(self.pushButtonMenu, 3, 0)
+        btn_layout.addWidget(self.pushButtonHome, 3, 1)
+        btn_layout.addWidget(self.pushButtonBack, 3, 2)
+        btn_layout.addWidget(self.pushButtonUp, 4, 1)
+        btn_layout.addWidget(self.pushButtonDown, 6, 1)
+        btn_layout.addWidget(self.pushButtonPotrait, 1, 0)
+        btn_layout.addWidget(self.pushButtonAutorotate, 1, 1)
+        btn_layout.addWidget(self.pushButtonLandscape, 1, 2)
+        btn_layout.addWidget(self.pushButtonNoAutorotate, 2, 1)
 
         self.splitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         self.splitter.addWidget(self.image_widget)
@@ -272,72 +282,73 @@ class MainWindow(QtGui.QMainWindow):
         self.actionSetADBPath.setText(_translate("MainWindow", "adb location", None))
 
     def acceptIPAddress(self):
-       logger.info('Accept IP address')
-       text, ok = QtGui.QInputDialog.getText(self, 'Enter IP address', 'xxx.xxx.xxx.xxx:yyyy')
+        logger.info('Accept IP address')
+        text, ok = QtGui.QInputDialog.getText(self, 'Enter IP address', 'xxx.xxx.xxx.xxx:yyyy')
 
-       if ok:
-           self.ipAddress = text
-       logger.info( "IP address being used: %s", self.ipAddress)
-       # Connect to device
+        if ok:
+            self.ipAddress = text
+        logger.info("IP address being used: %s", self.ipAddress)
+        # Connect to device
 
     def getADBPath(self):
         logger.info('Locating ADB Path')
         self.adb_path = QtGui.QFileDialog.getOpenFileName(self, 'Locate ADB')
-        logger.info( 'ADB Path: %s', self.adb_path )
+        logger.info('ADB Path: %s', self.adb_path)
         self.uiAdb = ADB(str(self.adb_path))
         # Initialiaze ADB.path
+
     def moveDown(self):
-        logger.info( 'Button Move Down' )
+        logger.info('Button Move Down')
         self.updateScreenShot()
 
     def moveUp(self):
         logger.info('Button Move Up')
-        self.uiAdb.call("shell "+mapActionCommand['UP'])
+        self.uiAdb.call("shell " + mapActionCommand['UP'])
         self.updateScreenShot()
 
     def moveRight(self):
-        logger.info('Button Move Right' )
-        self.uiAdb.call("shell "+mapActionCommand['RIGHT'])
+        logger.info('Button Move Right')
+        self.uiAdb.call("shell " + mapActionCommand['RIGHT'])
         self.updateScreenShot()
 
     def moveLeft(self):
-        logger.info( 'Button Move Left' )
-        self.uiAdb.call("shell "+mapActionCommand['LEFT'])
+        logger.info('Button Move Left')
+        self.uiAdb.call("shell " + mapActionCommand['LEFT'])
         self.updateScreenShot()
 
     def clickMenu(self):
         logger.info('Button clickMenu ')
-        self.uiAdb.call("shell "+mapActionCommand['MENU'])
+        self.uiAdb.call("shell " + mapActionCommand['MENU'])
         self.updateScreenShot()
 
     def clickHome(self):
         logger.info(' Button clickHome ')
-        self.uiAdb.call("shell "+mapActionCommand['HOME'])
+        self.uiAdb.call("shell " + mapActionCommand['HOME'])
         self.updateScreenShot()
 
     def clickBack(self):
         logger.info(' Button clickBack ')
-        self.uiAdb.call("shell "+mapActionCommand['BACK'])
+        self.uiAdb.call("shell " + mapActionCommand['BACK'])
         self.updateScreenShot()
-        
+
     def clickAutoRotate(self):
         logger.info(' Button clickAutoRotate ')
-        self.uiAdb.call("shell "+mapActionCommand['AUTOROTATEON'])
+        self.uiAdb.call("shell " + mapActionCommand['AUTOROTATEON'])
         self.updateScreenShot()
 
     def clickNoAutoRotate(self):
         logger.info(' Button clickNoAutoRotate ')
-        self.uiAdb.call("shell "+mapActionCommand['AUTOROTATEOFF'])
+        self.uiAdb.call("shell " + mapActionCommand['AUTOROTATEOFF'])
         self.updateScreenShot()
 
     def potrait(self):
         logger.info(' Button potrait ')
-        self.uiAdb.call("shell "+mapActionCommand['POTRAIT'])
+        self.uiAdb.call("shell " + mapActionCommand['POTRAIT'])
         self.updateScreenShot()
 
     def landscape(self):
         logger.info(' Button landscape ')
-        self.uiAdb.call("shell "+mapActionCommand['LANDSCAPE'])
+        self.uiAdb.call("shell " + mapActionCommand['LANDSCAPE'])
         self.updateScreenShot()
 
     def ConnectToDevice(self):
@@ -347,7 +358,7 @@ class MainWindow(QtGui.QMainWindow):
 
         if ADB.adb_path and self.ipAddress:
             # All set connect to device
-            logger.info( 'Connecting to device')
+            logger.info('Connecting to device')
             self.uiAdb.connect(str(self.ipAddress))
             self.change_icon()
         else:
@@ -370,21 +381,21 @@ class MainWindow(QtGui.QMainWindow):
         self.updateDisplay()
 
     def updateDisplay(self):
-        logger.info( 'Updating display image' )
+        logger.info('Updating display image')
         orig_pixmap = QtGui.QPixmap(_fromUtf8('screenshot.png'))
-        scale0 = self.image_widget.geometry().height()*1.0/orig_pixmap.height()
-        scale1 = self.image_widget.geometry().width()*1.0/orig_pixmap.width()
+        scale0 = self.image_widget.geometry().height() * 1.0 / orig_pixmap.height()
+        scale1 = self.image_widget.geometry().width() * 1.0 / orig_pixmap.width()
         self.imageScaleFactor = min(scale0, scale1)
 
-        width = int(self.imageScaleFactor*orig_pixmap.width())
-        height = int(self.imageScaleFactor*orig_pixmap.height())
+        width = int(self.imageScaleFactor * orig_pixmap.width())
+        height = int(self.imageScaleFactor * orig_pixmap.height())
         pixmap = orig_pixmap.scaled(width, height, QtCore.Qt.KeepAspectRatio)
 
-        logger.info('    scaled pixmap size: %s, %s', pixmap.width(),pixmap.height())
+        logger.info('    scaled pixmap size: %s, %s', pixmap.width(), pixmap.height())
         logger.info('    Orig size         : %s, %s', orig_pixmap.width(), orig_pixmap.height())
         self.image_label.resize(self.image_widget.geometry().width(), self.image_widget.geometry().height())
         self.image_label.setPixmap(pixmap)
-        logger.info( self.image_widget.geometry())
+        logger.info(self.image_widget.geometry())
         logger.info(self.image_label.geometry())
         # Now updae label size to match the image
         if self.labelInited is None:
@@ -395,21 +406,21 @@ class MainWindow(QtGui.QMainWindow):
         self.screenx = int(pixmap.width())
         self.screeny = int(pixmap.height())
 
-        logger.info( '    image scalefactor: %s', self.imageScaleFactor )
+        logger.info('    image scalefactor: %s', self.imageScaleFactor)
 
     def mousePressEvent(self, QMouseEvent):
-        logger.info( 'mousePressEvent: ' )
+        logger.info('mousePressEvent: ')
         pos = QMouseEvent.pos()
         central = self.image_widget
         relx = pos.x() - central.x()
         rely = pos.y() - central.y()
-        logger.info( '    mouseclick relative: %s', relx)
-        logger.info( '    mouseclick relative: %s', rely)
-        if ( (int(relx) < self.screenx) and (int(rely) < self.screeny)):
+        logger.info('    mouseclick relative: %s', relx)
+        logger.info('    mouseclick relative: %s', rely)
+        if ((int(relx) < self.screenx) and (int(rely) < self.screeny)):
             logger.info("    mouse event inside ")
-            sx = (pos.x() - central.x())/self.imageScaleFactor
-            sy = (pos.y() - central.y())/self.imageScaleFactor
-            logger.info( '    Mouse event at: %s, %s', int(sx), int(sy))
+            sx = (pos.x() - central.x()) / self.imageScaleFactor
+            sy = (pos.y() - central.y()) / self.imageScaleFactor
+            logger.info('    Mouse event at: %s, %s', int(sx), int(sy))
             self.uiAdb.touchAt(int(sx), int(sy))
             self.updateScreenShot()
         else:
@@ -417,13 +428,15 @@ class MainWindow(QtGui.QMainWindow):
 
     @classmethod
     def mouseReleaseEvent(self, QMouseEvent):
-        cursor =QtGui.QCursor()
-        
+        cursor = QtGui.QCursor()
+
+
 def main():
     app = QtGui.QApplication(sys.argv)
     fireui = MainWindow()
     fireui.show()
     sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
     main()
