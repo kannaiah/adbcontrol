@@ -48,6 +48,12 @@ def execute_command(command, lcwd=None):
 ##########################################################################
 
 
+def setup_eol_cleaner(eol):
+    def eol_replace(s):
+        return s.replace(eol, '\x0A')
+    return eol_replace
+
+
 class ADB():
     adb_path = None
 
@@ -62,6 +68,11 @@ class ADB():
         # Check if adb is working
         res = execute_command([ADB.adb_path, 'help'])
         self.devs = None
+        eolfile = "eol.txt"
+        self.run(ADB.adb_path + " shell echo", eolfile)
+        with open(eolfile, "rb") as f:
+            s = f.read()
+        self.eol_replace = setup_eol_cleaner(s)
 
     def getDevice(self, num=0):
         if len(self.devs) > 0:
@@ -70,8 +81,8 @@ class ADB():
             None
 
     def run(self, cmd, logfile):
-        with open(logfile, "w") as f:
-            p = subprocess.Popen(cmd, shell=True, universal_newlines=True, stdout=f)
+        with open(logfile, "wb") as f:
+            p = subprocess.Popen(cmd, shell=True, stdout=f)
             p.wait()
             return p
 
@@ -111,8 +122,7 @@ class ADB():
         self.run(cmd, logfile)
         with open(logfile, "rb") as f:
             s = f.read()
-            s = s.replace('\r\n', '\n')
-            s = s.replace('\r\n', '\n')
+            s = self.eol_replace(s)
             with open(output, "wb") as wf:
                 wf.write(s)
 
