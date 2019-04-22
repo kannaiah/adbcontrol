@@ -50,7 +50,7 @@ def execute_command(command, lcwd=None):
 
 def setup_eol_cleaner(eol):
     def eol_replace(s):
-        return s.replace(eol, '\x0A')
+        return s.replace(eol, b'\x0A')
     return eol_replace
 
 
